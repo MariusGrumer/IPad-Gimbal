@@ -2,64 +2,44 @@
 #include <Arduino.h>
 #include <esp_now.h>
 #include <WiFi.h>
-
-// Structure example to receive data
-// Must match the sender structure
-typedef struct struct_message
-{
-    uint8_t id;
-    float hor;
-    float ver;
-    float vel;
-    float A1;
-    float A2;
-} struct_message;
-
-// Create a struct_message called myData
-struct_message myData;
-
-// callback function that will be executed when data is received
-void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
-{
-    char macStr[18];
-    Serial.print("Packet received from: ");
-    snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
-             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-    Serial.println(macStr);
-    memcpy(&myData, incomingData, sizeof(myData));
-    Serial.printf("Board ID %u: %u bytes\n", myData.id, len);
-    // Update the structures with the new incoming data
-}
+#include <CEspNowSlave.h>
 
 void setup()
 {
-    // Initialize Serial Monitor
     Serial.begin(115200);
-
-    // Set device as a Wi-Fi Station
+    Serial.println();
+    Serial.print("Client Board MAC Address:  ");
+    Serial.println(WiFi.macAddress());
     WiFi.mode(WIFI_STA);
+    WiFi.disconnect();
+    start = millis();
 
-    // Init ESP-NOW
-    if (esp_now_init() != ESP_OK)
+#ifdef SAVE_CHANNEL
+    EEPROM.begin(10);
+    lastChannel = EEPROM.read(0);
+    Serial.println(lastChannel);
+    if (lastChannel >= 1 && lastChannel <= MAX_CHANNEL)
     {
-        Serial.println("Error initializing ESP-NOW");
-        return;
+        channel = lastChannel;
     }
-
-    // Once ESPNow is successfully Init, we will register for recv CB to
-    // get recv packer info
-    esp_now_register_recv_cb(OnDataRecv);
+    Serial.println(channel);
+#endif
+    pairingStatus = PAIR_REQUEST;
 }
 
 void loop()
 {
-    // Acess the variables for each board
-    /*int board1X = boardsStruct[0].x;
-    int board1Y = boardsStruct[0].y;
-    int board2X = boardsStruct[1].x;
-    int board2Y = boardsStruct[1].y;
-    int board3X = boardsStruct[2].x;
-    int board3Y = boardsStruct[2].y;*/
-
-    delay(10000);
+    if (autoPairing() == PAIR_PAIRED)
+    {
+        unsigned long currentMillis = millis();
+        if (currentMillis - previousMillis >= interval)
+        {
+            // Save the last time a new reading was published
+            previousMillis = currentMillis;
+            // Set values to send
+            myData.msgType = DATA;
+            myData.id = BOARD_ID;
+            esp_err_t result = esp_now_send(serverAddress, (uint8_t *)&myData, sizeof(myData));
+        }
+    }
 }
