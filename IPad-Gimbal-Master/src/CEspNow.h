@@ -70,6 +70,7 @@ bool addPeer(const uint8_t *peer_addr)
         {
             // Pair success
             Serial.println("Pair success");
+            myPeers.addPeer(pairingData.id); // Peer zu Liste hinzufügen
             return true;
         }
         else
@@ -104,6 +105,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
         Serial.print("ID = ");
         Serial.println(incomingReadings.id);
         Serial.println();
+        myPeers.setDataFromPeer(incomingReadings.id, incomingReadings.vel, incomingReadings.ver, incomingReadings.hor);
         switch (incomingReadings.id)
         {
         case 0:
@@ -137,13 +139,14 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
         { // do not replay to server itself
             if (pairingData.msgType == PAIRING)
             {
-                pairingData.id = 0; // 0 is server
+
                 // Server is in AP_STA mode: peers need to send data to server soft AP MAC address
                 WiFi.softAPmacAddress(pairingData.macAddr);
                 pairingData.channel = chan;
                 Serial.println("send response");
-                esp_err_t result = esp_now_send(mac_addr, (uint8_t *)&pairingData, sizeof(pairingData));
                 addPeer(mac_addr);
+                pairingData.id = 0; // 0 is server -> reset after adding Peer
+                esp_err_t result = esp_now_send(mac_addr, (uint8_t *)&pairingData, sizeof(pairingData));
             }
         }
         break;

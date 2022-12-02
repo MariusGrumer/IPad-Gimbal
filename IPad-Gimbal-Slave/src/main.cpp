@@ -2,15 +2,15 @@
 #include <Arduino.h>
 #include <esp_now.h>
 #include <WiFi.h>
-
+#include "SStateData.h"
 #define BOARD_ID 1
 unsigned long currentMillis = millis();
 unsigned long previousMillis = 0; // Stores last time temperature was published
 const long interval = 10000;      // Interval at which to publish sensor readings
 unsigned long start;              // used to measure Pairing time
-unsigned int readingId = 0;
+unsigned int readingId = 1;
 
-#include "SStateData.h"
+SStateData mStateData;
 #include "CEspNowSlave.h"
 
 void setup()
@@ -53,6 +53,9 @@ void loop()
             myData.msgType = DATA;
             myData.id = BOARD_ID;
             myData.readingId = BOARD_ID;
+            myData.hor = mStateData.hor;
+            myData.ver = mStateData.ver;
+            myData.vel = mStateData.vel;
             myData.angleServo1 = mStateData.angleServo1;
             myData.angleServo2 = mStateData.angleServo2;
             myData.servoVel = mStateData.servoVel;

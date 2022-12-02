@@ -8,6 +8,10 @@
 #include "StepperMaster.h"
 #include "Gimbal.h"
 #include <Arduino.h>
+#include "CPeerList.h"
+
+CPeerList myPeers;
+
 #include "CEspNow.h"
 
 // HS Wlan
@@ -793,5 +797,6 @@ void loop()
         outgoingSetpoints.angleServo2 = 0;
         outgoingSetpoints.readingId = 1;
         esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints));
+        myPeers.printList();
     }
 }
