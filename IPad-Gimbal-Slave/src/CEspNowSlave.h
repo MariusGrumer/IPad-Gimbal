@@ -3,7 +3,6 @@
 #include <esp_wifi.h>
 #include <Arduino.h>
 
-#define BOARD_ID 1
 #define MAX_CHANNEL 13 // for North America // 13 in Europe
 
 uint8_t serverAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -16,8 +15,12 @@ typedef struct struct_message
 {
     uint8_t msgType;
     uint8_t id;
-    float temp;
-    float hum;
+    float ver;
+    float hor;
+    float vel;
+    float angleServo1;
+    float angleServo2;
+    float servoVel;
     unsigned int readingId;
 } struct_message;
 
@@ -55,30 +58,6 @@ int lastChannel;
 #endif
 int channel = 1;
 
-// simulate temperature and humidity data
-float t = 0;
-float h = 0;
-
-unsigned long currentMillis = millis();
-unsigned long previousMillis = 0; // Stores last time temperature was published
-const long interval = 10000;      // Interval at which to publish sensor readings
-unsigned long start;              // used to measure Pairing time
-unsigned int readingId = 0;
-
-// simulate temperature reading
-float readDHTTemperature()
-{
-    t = random(0, 40);
-    return t;
-}
-
-// simulate humidity reading
-float readDHTHumidity()
-{
-    h = random(0, 100);
-    return h;
-}
-
 void addPeer(const uint8_t *mac_addr, uint8_t chan)
 {
     esp_now_peer_info_t peer;
@@ -95,6 +74,7 @@ void addPeer(const uint8_t *mac_addr, uint8_t chan)
         return;
     }
     memcpy(serverAddress, mac_addr, sizeof(uint8_t[6]));
+    Serial.println("added Peer");
 }
 
 void printMAC(const uint8_t *mac_addr)
@@ -128,12 +108,15 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
         memcpy(&inData, incomingData, sizeof(inData));
         Serial.print("ID  = ");
         Serial.println(inData.id);
-        Serial.print("Setpoint temp = ");
-        Serial.println(inData.temp);
-        Serial.print("SetPoint humidity = ");
-        Serial.println(inData.hum);
+        Serial.print("incoming vel = ");
+        Serial.println(inData.vel);
+        Serial.print("incoming hor = ");
+        Serial.println(inData.hor);
+        Serial.print("incoming ver = ");
+        Serial.println(inData.ver);
         Serial.print("reading Id  = ");
         Serial.println(inData.readingId);
+        break;
 
     case PAIRING: // we received pairing data from server
         memcpy(&pairingData, incomingData, sizeof(pairingData));

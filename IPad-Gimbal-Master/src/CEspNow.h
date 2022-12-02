@@ -12,16 +12,18 @@ enum MessageType
 };
 MessageType messageType;
 
-int counter = 0;
-
 // Structure example to receive data
 // Must match the sender structure
 typedef struct struct_message
 {
     uint8_t msgType;
     uint8_t id;
-    float temp;
-    float hum;
+    float ver;
+    float hor;
+    float vel;
+    float angleServo1;
+    float angleServo2;
+    float servoVel;
     unsigned int readingId;
 } struct_message;
 

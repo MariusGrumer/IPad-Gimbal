@@ -781,14 +781,17 @@ void loop()
 {
     webSocket.loop();
     stepperTimeoutCheck();
-    if (millis() - lastSent > 5000)
+    if (millis() - lastSent > 10000)
     {
         lastSent = millis();
         outgoingSetpoints.msgType = DATA;
         outgoingSetpoints.id = 0;
-        outgoingSetpoints.temp = random(0, 40);
-        outgoingSetpoints.hum = random(0, 100);
-        outgoingSetpoints.readingId = counter++;
+        outgoingSetpoints.hor = random(0, 40);
+        outgoingSetpoints.ver = random(0, 40);
+        outgoingSetpoints.vel = random(0, 100);
+        outgoingSetpoints.angleServo1 = 0;
+        outgoingSetpoints.angleServo2 = 0;
+        outgoingSetpoints.readingId = 1;
         esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints));
     }
 }

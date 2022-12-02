@@ -2,7 +2,15 @@
 #include <Arduino.h>
 #include <esp_now.h>
 #include <WiFi.h>
-#include <CEspNowSlave.h>
+
+#define BOARD_ID 1
+unsigned long currentMillis = millis();
+unsigned long previousMillis = 0; // Stores last time temperature was published
+const long interval = 10000;      // Interval at which to publish sensor readings
+unsigned long start;              // used to measure Pairing time
+unsigned int readingId = 0;
+
+#include "CEspNowSlave.h"
 
 void setup()
 {

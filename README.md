@@ -10,3 +10,7 @@ Tutorial für ESP NOW unter:
 https://randomnerdtutorials.com/esp-now-auto-pairing-esp32-esp8266/
 
 programmiert in Visualstudo Code
+
+## Features
+- Automatische WIFI-Channel suche -> Router gibt channel vor
+- Automatisches Pairing (ESP NOW)
