@@ -101,10 +101,28 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
     {
     case DATA: // the message is data type
         memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
-        // create a JSON document with received data and send it by event to the web page
         Serial.print("ID = ");
         Serial.println(incomingReadings.id);
         Serial.println();
+        switch (incomingReadings.id)
+        {
+        case 0:
+            Serial.println("Recieved wrong Data");
+            break;
+        case 1:
+            Serial.println("Received Data for slave 1");
+            break;
+        case 2:
+            Serial.println("Received Data for slave 2");
+            break;
+        case 3:
+            Serial.println("Received Data for slave 3");
+            break;
+
+        default:
+            Serial.println("Recieved wrong Data");
+            break;
+        }
         break;
 
     case PAIRING: // the message is a pairing request

@@ -108,14 +108,26 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
         memcpy(&inData, incomingData, sizeof(inData));
         Serial.print("ID  = ");
         Serial.println(inData.id);
-        Serial.print("incoming vel = ");
-        Serial.println(inData.vel);
-        Serial.print("incoming hor = ");
-        Serial.println(inData.hor);
-        Serial.print("incoming ver = ");
-        Serial.println(inData.ver);
-        Serial.print("reading Id  = ");
-        Serial.println(inData.readingId);
+        if (inData.id == 0) // if data is from server
+        {
+            Serial.print("reading Id  = ");
+            Serial.println(inData.readingId);
+            if (inData.readingId == BOARD_ID) // if Data is for this slave
+            {
+                // Storing Data in Struct
+                mStateData.vel = inData.vel;
+                mStateData.ver = inData.ver;
+                mStateData.hor = inData.hor;
+
+                Serial.print("incoming vel = ");
+                Serial.println(inData.vel);
+                Serial.print("incoming hor = ");
+                Serial.println(inData.hor);
+                Serial.print("incoming ver = ");
+                Serial.println(inData.ver);
+            }
+        }
+
         break;
 
     case PAIRING: // we received pairing data from server

@@ -10,6 +10,7 @@ const long interval = 10000;      // Interval at which to publish sensor reading
 unsigned long start;              // used to measure Pairing time
 unsigned int readingId = 0;
 
+#include "SStateData.h"
 #include "CEspNowSlave.h"
 
 void setup()
@@ -42,11 +43,19 @@ void loop()
         unsigned long currentMillis = millis();
         if (currentMillis - previousMillis >= interval)
         {
+            Serial.print("aktuell existierende peers: ");
+            esp_now_peer_num_t numOfPeers;
+            esp_now_get_peer_num(&numOfPeers);
+            Serial.println(numOfPeers.total_num);
             // Save the last time a new reading was published
             previousMillis = currentMillis;
             // Set values to send
             myData.msgType = DATA;
             myData.id = BOARD_ID;
+            myData.readingId = BOARD_ID;
+            myData.angleServo1 = mStateData.angleServo1;
+            myData.angleServo2 = mStateData.angleServo2;
+            myData.servoVel = mStateData.servoVel;
             esp_err_t result = esp_now_send(serverAddress, (uint8_t *)&myData, sizeof(myData));
         }
     }
