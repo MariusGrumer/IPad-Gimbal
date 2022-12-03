@@ -54,9 +54,10 @@ void loop()
             myData.hor = mStateData.hor;
             myData.ver = mStateData.ver;
             myData.vel = mStateData.vel;
-            myData.angleServo1 = mStateData.angleServo1;
-            myData.angleServo2 = mStateData.angleServo2;
+            mStateData.angleServo1 = mStateData.angleServo1 + mStateData.hor;
+            mStateData.angleServo2 = mStateData.angleServo2 + mStateData.ver;
             myData.servoVel = mStateData.servoVel;
+            myData.pStateData = mStateData;
             esp_err_t result = esp_now_send(serverAddress, (uint8_t *)&myData, sizeof(myData));
         }
         if (answer == true)

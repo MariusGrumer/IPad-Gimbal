@@ -24,6 +24,7 @@ typedef struct struct_message
     float angleServo1;
     float angleServo2;
     float servoVel;
+    SStateData pStateData;
     unsigned int readingId;
 } struct_message;
 
@@ -105,15 +106,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
         Serial.print("ID = ");
         Serial.println(incomingReadings.id);
         Serial.println();
-        SStateData mStateData;
-        mStateData.hor = incomingReadings.hor;
-        mStateData.ver = incomingReadings.ver;
-        mStateData.vel = incomingReadings.vel;
-
-        mStateData.servoVel = incomingReadings.servoVel;
-        mStateData.angleServo1 = incomingReadings.angleServo1;
-        mStateData.angleServo2 = incomingReadings.angleServo2;
-        myPeers.setDataFromPeer(incomingReadings.id, mStateData);
+        myPeers.setDataFromPeer(incomingReadings.id, incomingReadings.pStateData);
         break;
 
     case PAIRING: // the message is a pairing request

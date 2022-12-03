@@ -21,6 +21,7 @@ typedef struct struct_message
     float angleServo1;
     float angleServo2;
     float servoVel;
+    SStateData pStateData;
     unsigned int readingId;
 } struct_message;
 
@@ -115,15 +116,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
             if (inData.readingId == BOARD_ID) // if Data is for this slave
             {
                 answer = true;
-                // Storing Data in Struct
-                mStateData.vel = inData.vel;
-                mStateData.ver = inData.ver;
-                mStateData.hor = inData.hor;
-                // wenn horizontal und vertikal vertauscht sind:
-                mStateData.angleServo1 = mStateData.angleServo1 + inData.ver;
-                mStateData.angleServo2 = mStateData.angleServo2 + inData.hor;
-                mStateData.servoVel = inData.servoVel;
-
+                mStateData = inData.pStateData;
                 Serial.print("incoming vel = ");
                 Serial.println(inData.vel);
                 Serial.print("incoming hor = ");

@@ -236,8 +236,9 @@ void respond(byte *payload, int length, uint8_t client_num)
         outgoingSetpoints.hor = mStateData.hor;
         outgoingSetpoints.ver = mStateData.ver;
         outgoingSetpoints.vel = mStateData.vel;
-        outgoingSetpoints.angleServo1 = 0;
-        outgoingSetpoints.angleServo2 = 0;
+        outgoingSetpoints.angleServo1 = mStateData.angleServo1;
+        outgoingSetpoints.angleServo2 = mStateData.angleServo2;
+        outgoingSetpoints.pStateData = mStateData;
         outgoingSetpoints.readingId = 1;
         esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints));
         //################################################################
