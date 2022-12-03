@@ -14,7 +14,7 @@ public:
     bool isEmpty();
     bool deleteList();
     SStateData getDataFromPeer(int pId);
-    bool setDataFromPeer(int pId, float pVel, float pVer, float pHor);
+    bool setDataFromPeer(int pId, SStateData pStateData);
     void printList();
 };
 
@@ -52,6 +52,13 @@ void CPeerList::printList()
         Serial.println(p->mStateData.ver);
         Serial.print("hor: ");
         Serial.println(p->mStateData.hor);
+
+        Serial.print("servoVel: ");
+        Serial.println(p->mStateData.servoVel);
+        Serial.print("angleServo1: ");
+        Serial.println(p->mStateData.angleServo1);
+        Serial.print("angleServo2: ");
+        Serial.println(p->mStateData.angleServo2);
         p = p->nachfolger;
     }
 }
@@ -88,7 +95,7 @@ SStateData CPeerList::getDataFromPeer(int pId)
     return p->mStateData;
 }
 
-bool CPeerList::setDataFromPeer(int pId, float pVel, float pVer, float pHor)
+bool CPeerList::setDataFromPeer(int pId, SStateData pStateData)
 {
     CPeer *p = head;
     while (p->mId != pId) // go trough list and find Peer with ID
@@ -97,7 +104,7 @@ bool CPeerList::setDataFromPeer(int pId, float pVel, float pVer, float pHor)
         if (p == NULL) // no ID found
             return false;
     }
-    p->setData(pVel, pVer, pHor);
+    p->setData(pStateData);
     return true;
 }
 CPeerList::CPeerList()

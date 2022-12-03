@@ -12,7 +12,7 @@ public:
 
     CPeer(int pId);
     SStateData getData();
-    bool setData(float pVel, float pVer, float pHor);
+    bool setData(SStateData pStateData);
     ~CPeer();
 };
 
@@ -21,11 +21,9 @@ CPeer::CPeer(int pId) : mId(pId)
     this->nachfolger = NULL;
 }
 
-bool CPeer::setData(float pVel, float pVer, float pHor)
+bool CPeer::setData(SStateData pStateData)
 {
-    mStateData.hor = pHor;
-    mStateData.ver = pVer;
-    mStateData.vel = pVel;
+    mStateData = pStateData;
     return true;
 }
 SStateData CPeer::getData()

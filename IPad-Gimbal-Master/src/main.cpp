@@ -224,13 +224,29 @@ void respond(byte *payload, int length, uint8_t client_num)
         Serial.println(ver);
         Serial.print("vel: ");
         Serial.println(vel);
-
+        //#################################################################
+        // ID Handling fehlt
+        SStateData mStateData;
+        mStateData = myPeers.getDataFromPeer(1);
+        mStateData.hor = hor.toFloat();
+        mStateData.ver = ver.toFloat();
+        mStateData.vel = vel.toFloat();
+        outgoingSetpoints.msgType = DATA;
+        outgoingSetpoints.id = 0;
+        outgoingSetpoints.hor = mStateData.hor;
+        outgoingSetpoints.ver = mStateData.ver;
+        outgoingSetpoints.vel = mStateData.vel;
+        outgoingSetpoints.angleServo1 = 0;
+        outgoingSetpoints.angleServo2 = 0;
+        outgoingSetpoints.readingId = 1;
+        esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints));
+        //################################################################
         // esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
         //  gimbal.rotateTo(hor.toFloat(), ver.toFloat(), vel.toFloat());
         response = "3:";
-        response += ""; // dataRecv.A1; // stepperOne.getAbsoluteAngle(); // get horizonzal axis Value (x)
+        response += mStateData.angleServo1; // dataRecv.A1; // stepperOne.getAbsoluteAngle(); // get horizonzal axis Value (x)
         response += ",";
-        response += ""; // dataRecv.A2; // stepperTwo.getAbsoluteAngle(); // get vertical axis Value (y)
+        response += mStateData.angleServo2; // dataRecv.A2; // stepperTwo.getAbsoluteAngle(); // get vertical axis Value (y)
         webSocket.broadcastTXT(response);
 
         // get/set stepper Pos
@@ -788,15 +804,11 @@ void loop()
     if (millis() - lastSent > 10000)
     {
         lastSent = millis();
-        outgoingSetpoints.msgType = DATA;
-        outgoingSetpoints.id = 0;
-        outgoingSetpoints.hor = random(0, 40);
-        outgoingSetpoints.ver = random(0, 40);
-        outgoingSetpoints.vel = random(0, 100);
-        outgoingSetpoints.angleServo1 = 0;
-        outgoingSetpoints.angleServo2 = 0;
-        outgoingSetpoints.readingId = 1;
-        esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints));
+        Serial.print("aktuell existierende peers: ");
+        esp_now_peer_num_t numOfPeers;
+        esp_now_get_peer_num(&numOfPeers);
+        Serial.println(numOfPeers.total_num);
+
         myPeers.printList();
     }
 }

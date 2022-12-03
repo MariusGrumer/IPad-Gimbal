@@ -105,26 +105,15 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
         Serial.print("ID = ");
         Serial.println(incomingReadings.id);
         Serial.println();
-        myPeers.setDataFromPeer(incomingReadings.id, incomingReadings.vel, incomingReadings.ver, incomingReadings.hor);
-        switch (incomingReadings.id)
-        {
-        case 0:
-            Serial.println("Recieved wrong Data");
-            break;
-        case 1:
-            Serial.println("Received Data for slave 1");
-            break;
-        case 2:
-            Serial.println("Received Data for slave 2");
-            break;
-        case 3:
-            Serial.println("Received Data for slave 3");
-            break;
+        SStateData mStateData;
+        mStateData.hor = incomingReadings.hor;
+        mStateData.ver = incomingReadings.ver;
+        mStateData.vel = incomingReadings.vel;
 
-        default:
-            Serial.println("Recieved wrong Data");
-            break;
-        }
+        mStateData.servoVel = incomingReadings.servoVel;
+        mStateData.angleServo1 = incomingReadings.angleServo1;
+        mStateData.angleServo2 = incomingReadings.angleServo2;
+        myPeers.setDataFromPeer(incomingReadings.id, mStateData);
         break;
 
     case PAIRING: // the message is a pairing request

@@ -114,10 +114,15 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
             Serial.println(inData.readingId);
             if (inData.readingId == BOARD_ID) // if Data is for this slave
             {
+                answer = true;
                 // Storing Data in Struct
                 mStateData.vel = inData.vel;
                 mStateData.ver = inData.ver;
                 mStateData.hor = inData.hor;
+                // wenn horizontal und vertikal vertauscht sind:
+                mStateData.angleServo1 = mStateData.angleServo1 + inData.ver;
+                mStateData.angleServo2 = mStateData.angleServo2 + inData.hor;
+                mStateData.servoVel = inData.servoVel;
 
                 Serial.print("incoming vel = ");
                 Serial.println(inData.vel);
