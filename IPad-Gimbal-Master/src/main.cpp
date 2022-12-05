@@ -233,13 +233,18 @@ void respond(byte *payload, int length, uint8_t client_num)
         //#################################################################
         // ID Handling ueberpruefen
         SStateData mStateData;
-        mStateData = myPeers.getDataFromPeer(camId.toInt());
+        if (!myPeers.getDataFromPeer(camId.toInt(), mStateData))
+            Serial.println("no Peer with ID found");
         mStateData.hor = hor.toFloat();
         mStateData.ver = ver.toFloat();
         mStateData.vel = vel.toFloat();
 
         espNowSendToPeer(camId.toInt(), mStateData);
-        myPeers.setDataFromPeer(camId.toInt(), mStateData);
+        if (!myPeers.setDataFromPeer(camId.toInt(), mStateData))
+        {
+            Serial.print("no Peer found with ID ");
+            Serial.println(camId);
+        }
         /*outgoingSetpoints.msgType = DATA;
         outgoingSetpoints.id = 0;
         outgoingSetpoints.pStateData = mStateData;
@@ -288,17 +293,24 @@ void respond(byte *payload, int length, uint8_t client_num)
                 ver = "0";
             mStateData.hor = hor.toFloat();
             mStateData.ver = ver.toFloat();
-            espNowSendToPeer(camId.toInt(), mStateData);
-            myPeers.setDataFromPeer(camId.toInt(), mStateData);
 
-            // stepperOne.setAbsoluteAngle(hor.toFloat());
-            // stepperTwo.setAbsoluteAngle(ver.toFloat());
+            if (!myPeers.setDataFromPeer(camId.toInt(), mStateData))
+            {
+                Serial.print("no Peer found with ID ");
+                Serial.println(camId);
+            }
+            espNowSendToPeer(camId.toInt(), mStateData);
+        }
+        if (!myPeers.getDataFromPeer(camId.toInt(), mStateData))
+        {
+            Serial.print("no Peer found with ID ");
+            Serial.println(camId);
         }
 
         response = "4:";
-        response += myPeers.getDataFromPeer(camId.toInt()).angleServo1; // get horizontal axis Value (x)
+        response += mStateData.angleServo1; // get horizontal axis Value (x)
         response += ",";
-        response += myPeers.getDataFromPeer(camId.toInt()).angleServo2; // get vertical axis Value (y)
+        response += mStateData.angleServo2; // get vertical axis Value (y)
         response += ",";
         response += camId;
         webSocket.sendTXT(client_num, response);

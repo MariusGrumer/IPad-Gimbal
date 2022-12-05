@@ -13,7 +13,7 @@ public:
     bool addPeer(int pId);
     bool isEmpty();
     bool deleteList();
-    SStateData getDataFromPeer(int pId);
+    bool getDataFromPeer(int pId, SStateData &pStateData);
     bool setDataFromPeer(int pId, SStateData pStateData);
     void printList();
 };
@@ -83,8 +83,12 @@ bool CPeerList::deleteList()
     return true;
 }
 
-SStateData CPeerList::getDataFromPeer(int pId)
+bool CPeerList::getDataFromPeer(int pId, SStateData &pStateData)
 {
+    if (this->isEmpty())
+    {
+        return false;
+    }
     CPeer *p = head;
     while (p->mId != pId) // go trough list and find Peer with ID
     {
@@ -92,14 +96,19 @@ SStateData CPeerList::getDataFromPeer(int pId)
         if (p == NULL) // no Id found
         {
             Serial.println("no peer with ID found");
-            return head->mStateData;
+            return false;
         }
     }
-    return p->mStateData;
+    pStateData = p->mStateData;
+    return true;
 }
 
 bool CPeerList::setDataFromPeer(int pId, SStateData pStateData)
 {
+    if (this->isEmpty())
+    {
+        return false;
+    }
     CPeer *p = head;
     while (p->mId != pId) // go trough list and find Peer with ID
     {
