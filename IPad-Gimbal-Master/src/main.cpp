@@ -64,6 +64,8 @@ void gimbalTest();
 void stepperTimeoutCheck();
 void websocketPing();
 
+bool espNowSendToPeer(unsigned int Id, SStateData pStateData);
+
 /*########################## FUNCTIONS ##############################*/
 
 //########## Web Server Handling ##########
@@ -218,32 +220,41 @@ void respond(byte *payload, int length, uint8_t client_num)
         String hor = splitString(data, ',', 0);
         String ver = splitString(data, ',', 1);
         String vel = splitString(data, ',', 2);
+        String camId = splitString(data, ',', 3);
         Serial.print("hor: ");
         Serial.println(hor);
         Serial.print("ver: ");
         Serial.println(ver);
         Serial.print("vel: ");
         Serial.println(vel);
+        Serial.print("ID: ");
+        Serial.println(camId);
+
         //#################################################################
-        // ID Handling fehlt
-        unsigned int targetId = 1;
+        // ID Handling ueberpruefen
         SStateData mStateData;
-        mStateData = myPeers.getDataFromPeer(targetId);
+        mStateData = myPeers.getDataFromPeer(camId.toInt());
         mStateData.hor = hor.toFloat();
         mStateData.ver = ver.toFloat();
         mStateData.vel = vel.toFloat();
-        outgoingSetpoints.msgType = DATA;
+
+        espNowSendToPeer(camId.toInt(), mStateData);
+        myPeers.setDataFromPeer(camId.toInt(), mStateData);
+        /*outgoingSetpoints.msgType = DATA;
         outgoingSetpoints.id = 0;
         outgoingSetpoints.pStateData = mStateData;
-        outgoingSetpoints.readingId = targetId;
-        esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints));
-        //################################################################
+        outgoingSetpoints.readingId = camId.toInt();
+        esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints));*/
+
         // esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
         //  gimbal.rotateTo(hor.toFloat(), ver.toFloat(), vel.toFloat());
+
         response = "3:";
         response += mStateData.angleServo1; // dataRecv.A1; // stepperOne.getAbsoluteAngle(); // get horizonzal axis Value (x)
         response += ",";
         response += mStateData.angleServo2; // dataRecv.A2; // stepperTwo.getAbsoluteAngle(); // get vertical axis Value (y)
+        response += ",";
+        response += camId;
         webSocket.broadcastTXT(response);
 
         // get/set stepper Pos
@@ -254,10 +265,19 @@ void respond(byte *payload, int length, uint8_t client_num)
         String getSet = splitString(data, ',', 0); // get = 0, set = 1
         String hor = splitString(data, ',', 1);
         String ver = splitString(data, ',', 2);
+        String camId = splitString(data, ',', 3);
 
+        SStateData mStateData;
+        if (camId == "")
+        {
+            response = "4:0,0,-1";
+            webSocket.sendTXT(client_num, response);
+            return;
+        }
         if (getSet == "0")
         { // get
-            Serial.println(" (return stepper positions)");
+            Serial.print(" (return stepper positions for ID: )");
+            Serial.println(camId);
         }
         else if (getSet == "1")
         { // set
@@ -266,14 +286,21 @@ void respond(byte *payload, int length, uint8_t client_num)
                 hor = "0";
             if (ver == "")
                 ver = "0";
-            stepperOne.setAbsoluteAngle(hor.toFloat());
-            stepperTwo.setAbsoluteAngle(ver.toFloat());
+            mStateData.hor = hor.toFloat();
+            mStateData.ver = ver.toFloat();
+            espNowSendToPeer(camId.toInt(), mStateData);
+            myPeers.setDataFromPeer(camId.toInt(), mStateData);
+
+            // stepperOne.setAbsoluteAngle(hor.toFloat());
+            // stepperTwo.setAbsoluteAngle(ver.toFloat());
         }
 
         response = "4:";
-        response += stepperOne.getAbsoluteAngle(); // get horizontal axis Value (x)
+        response += myPeers.getDataFromPeer(camId.toInt()).angleServo1; // get horizontal axis Value (x)
         response += ",";
-        response += stepperTwo.getAbsoluteAngle(); // get vertical axis Value (y)
+        response += myPeers.getDataFromPeer(camId.toInt()).angleServo2; // get vertical axis Value (y)
+        response += ",";
+        response += camId;
         webSocket.sendTXT(client_num, response);
     }
     else if (cmd == '5')
@@ -758,6 +785,16 @@ void websocketPing()
     }
 }
 
+// Send Data via ESP NOW to any Peer
+bool espNowSendToPeer(unsigned int Id, SStateData pStateData)
+{
+    outgoingSetpoints.msgType = DATA;                                             // Type of Data
+    outgoingSetpoints.id = 0;                                                     // ID of this ESP (Master = 0)
+    outgoingSetpoints.pStateData = pStateData;                                    // Data
+    outgoingSetpoints.readingId = Id;                                             // Target ID
+    esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints)); // send data
+    return true;
+}
 //----------------------------------- µ-Controller loop -----------------------------------
 void setup()
 {

@@ -1,7 +1,7 @@
-//HTML + CSS + JavaScript codes for webpage
+// HTML + CSS + JavaScript codes for webpage
 //=========================================
 const char webpageCode[] =
-R"=====(
+    R"=====(
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -349,7 +349,10 @@ R"=====(
                         <span> Step:</span> 
                         <input type="number" id="stepInput" value="1">
                     </div>
-
+                    <div>
+                        <span> CamID:</span> 
+                        <input type="number" id="camId" value="1">
+                    </div>
                 </div>
 
                 <div class="columnStyle">
@@ -490,12 +493,12 @@ R"=====(
 
                     case "3":
                         var pos = content.split(",")
-                        updatePos(parseFloat(pos[0]), parseFloat(pos[1]));
+                        updatePos(parseFloat(pos[0]), parseFloat(pos[1]), parseInt(pos[2]));
                         break;
 
                     case "4":
                         var pos = content.split(",");
-                        updatePos(parseFloat(pos[0]), parseFloat(pos[1]));
+                        updatePos(parseFloat(pos[0]), parseFloat(pos[1]),parseInt(pos[2]));
                         break;
 
                     default:
@@ -587,10 +590,11 @@ R"=====(
                 }
             }
 
-            function updatePos(hor, ver){
+            function updatePos(hor, ver, camId){
                 debuglog("updating pos")
                 document.getElementById("hor").value = hor;
                 document.getElementById("ver").value = ver;
+                document.getElementById("camId").value = 1; // anpassen an ID ???
             }
             
             function requestRotate(keyCode){
@@ -598,6 +602,8 @@ R"=====(
                 var ver = Math.round(parseFloat(document.getElementById("ver").value, 2));
                 var step = Math.round(parseFloat(document.getElementById("stepInput").value, 2));
                 var speed = parseInt(document.getElementById("speed").value);
+
+                var camId = parseInt(document.getElementById("camId").value);
 
                 switch (keyCode){ //key was pressed remove or add amount to Position
                     case 37: //left -> Vertical axis 
@@ -616,7 +622,7 @@ R"=====(
                 }
 
                 if(wsConnected){
-                    wsSend("3:" + hor + "," + ver + "," + speed)
+                    wsSend("3:" + hor + "," + ver + "," + speed + "," + camId)
                 }
             }
 
@@ -814,7 +820,8 @@ R"=====(
             const setZeroButton = document.getElementById("setZeroButton")
             setZeroButton.onclick = (event) => {
                 if (wsConnected){
-                    var message = "4:1,";
+                    var camId = parseInt(document.getElementById("camId").value);
+                    var message = "4:1,0,0,"+camId;
                     wsSend(message);
                 }
             }

@@ -89,8 +89,11 @@ SStateData CPeerList::getDataFromPeer(int pId)
     while (p->mId != pId) // go trough list and find Peer with ID
     {
         p = p->nachfolger;
-        if (p == NULL)            // no Id found
-            return p->mStateData; // throw error
+        if (p == NULL) // no Id found
+        {
+            Serial.println("no peer with ID found");
+            return head->mStateData;
+        }
     }
     return p->mStateData;
 }
@@ -100,9 +103,12 @@ bool CPeerList::setDataFromPeer(int pId, SStateData pStateData)
     CPeer *p = head;
     while (p->mId != pId) // go trough list and find Peer with ID
     {
-        p = p->nachfolger;
-        if (p == NULL) // no ID found
+        if (p == end) // no ID found
+        {
+            Serial.println("no peers with matching ID found");
             return false;
+        }
+        p = p->nachfolger;
     }
     p->setData(pStateData);
     return true;
