@@ -14,3 +14,13 @@ programmiert in Visualstudo Code
 ## Features
 - Automatische WIFI-Channel suche -> Router gibt channel vor
 - Automatisches Pairing (ESP NOW)
+
+## TODO´s
+- Webseite:
+  - Anpasen Datenaustausch mit websocket
+  - Anzeige mehrerer Slaves
+  - Überarbeiteung der Datenberechnung
+  
+- SLaves:
+  - Ansteuern der Motoren
+  - Rücksenden der Daten
