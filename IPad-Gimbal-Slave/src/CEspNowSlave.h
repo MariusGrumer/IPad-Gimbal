@@ -15,12 +15,6 @@ typedef struct struct_message
 {
     uint8_t msgType;
     uint8_t id;
-    float ver;
-    float hor;
-    float vel;
-    float angleServo1;
-    float angleServo2;
-    float servoVel;
     SStateData pStateData;
     unsigned int readingId;
 } struct_message;
@@ -118,11 +112,11 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
                 answer = true;
                 mStateData = inData.pStateData;
                 Serial.print("incoming vel = ");
-                Serial.println(inData.vel);
+                Serial.println(inData.pStateData.vel);
                 Serial.print("incoming hor = ");
-                Serial.println(inData.hor);
+                Serial.println(inData.pStateData.hor);
                 Serial.print("incoming ver = ");
-                Serial.println(inData.ver);
+                Serial.println(inData.pStateData.ver);
             }
         }
 

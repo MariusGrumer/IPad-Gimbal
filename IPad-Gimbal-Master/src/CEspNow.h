@@ -18,12 +18,6 @@ typedef struct struct_message
 {
     uint8_t msgType;
     uint8_t id;
-    float ver;
-    float hor;
-    float vel;
-    float angleServo1;
-    float angleServo2;
-    float servoVel;
     SStateData pStateData;
     unsigned int readingId;
 } struct_message;

@@ -8,7 +8,7 @@ unsigned long currentMillis = millis();
 unsigned long previousMillis = 0; // Stores last time temperature was published
 const long interval = 10000;      // Interval at which to publish sensor readings
 unsigned long start;              // used to measure Pairing time
-unsigned int readingId = 1;
+unsigned int readingId = BOARD_ID;
 bool answer = false;
 
 SStateData mStateData;
@@ -16,7 +16,7 @@ SStateData mStateData;
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(921600);
     Serial.println();
     Serial.print("Client Board MAC Address:  ");
     Serial.println(WiFi.macAddress());
@@ -48,17 +48,6 @@ void loop()
             // Save the last time a new reading was published
             previousMillis = currentMillis;
             // Set values to send
-            myData.msgType = DATA;
-            myData.id = BOARD_ID;
-            myData.readingId = BOARD_ID;
-            myData.hor = mStateData.hor;
-            myData.ver = mStateData.ver;
-            myData.vel = mStateData.vel;
-            mStateData.angleServo1 = mStateData.angleServo1 + mStateData.hor;
-            mStateData.angleServo2 = mStateData.angleServo2 + mStateData.ver;
-            myData.servoVel = mStateData.servoVel;
-            myData.pStateData = mStateData;
-            esp_err_t result = esp_now_send(serverAddress, (uint8_t *)&myData, sizeof(myData));
         }
         if (answer == true)
         {
@@ -67,12 +56,9 @@ void loop()
             myData.msgType = DATA;
             myData.id = BOARD_ID;
             myData.readingId = BOARD_ID;
-            myData.hor = mStateData.hor;
-            myData.ver = mStateData.ver;
-            myData.vel = mStateData.vel;
-            myData.angleServo1 = mStateData.angleServo1;
-            myData.angleServo2 = mStateData.angleServo2;
-            myData.servoVel = mStateData.servoVel;
+            mStateData.angleServo1 = mStateData.hor; // fahren der Servos
+            mStateData.angleServo1 = mStateData.hor;
+            myData.pStateData = mStateData;
             esp_err_t result = esp_now_send(serverAddress, (uint8_t *)&myData, sizeof(myData));
         }
     }

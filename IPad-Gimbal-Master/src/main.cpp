@@ -226,20 +226,16 @@ void respond(byte *payload, int length, uint8_t client_num)
         Serial.println(vel);
         //#################################################################
         // ID Handling fehlt
+        unsigned int targetId = 1;
         SStateData mStateData;
-        mStateData = myPeers.getDataFromPeer(1);
+        mStateData = myPeers.getDataFromPeer(targetId);
         mStateData.hor = hor.toFloat();
         mStateData.ver = ver.toFloat();
         mStateData.vel = vel.toFloat();
         outgoingSetpoints.msgType = DATA;
         outgoingSetpoints.id = 0;
-        outgoingSetpoints.hor = mStateData.hor;
-        outgoingSetpoints.ver = mStateData.ver;
-        outgoingSetpoints.vel = mStateData.vel;
-        outgoingSetpoints.angleServo1 = mStateData.angleServo1;
-        outgoingSetpoints.angleServo2 = mStateData.angleServo2;
         outgoingSetpoints.pStateData = mStateData;
-        outgoingSetpoints.readingId = 1;
+        outgoingSetpoints.readingId = targetId;
         esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints));
         //################################################################
         // esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
@@ -522,6 +518,8 @@ bool wifiSetup(int wifiTimeout)
                 int timeStamp = millis() + wifiTimeout * 1000;
                 while (((WiFi.status() != WL_CONNECTED) && (timeStamp >= millis())))
                 {
+                    Serial.print(" .");
+                    delay(100);
                 }
             }
         }
@@ -765,7 +763,7 @@ void setup()
 {
 
     int stamp = millis();
-    Serial.begin(115200);
+    Serial.begin(921600);
 
     Serial.println("Booting ESP...");
 
