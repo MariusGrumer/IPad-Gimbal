@@ -10,3 +10,13 @@ Tutorial für ESP NOW unter:
 https://randomnerdtutorials.com/esp-now-auto-pairing-esp32-esp8266/
 
 programmiert in Visualstudo Code
+
+# Todos:
+- Anpassen Webseite:
+  - Auswahl mehrerer Slaves
+  - Festlegen der Datenschnittstelle
+  - Überarbeiten der Berechnung der Werte
+  
+- Anpassen Slaves
+  - Ansteuern der Motoren
+  - Rücksenden der Positionen
