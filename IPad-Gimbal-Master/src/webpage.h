@@ -363,12 +363,12 @@ const char webpageCode[] =
                     <span id="camPos">Camera angle</span>
                     <div class="rowStyle">
                         <span style="min-width: 5em;">Horizontal:</span> 
-                        <input type="text" id="hor">
+                        <input type="text" id="horAngle" value ="0">
                     </div>
                     
                     <div class="rowStyle">
                         <span style="min-width: 5em;">Vertical:</span> 
-                        <input type="text" id="ver">
+                        <input type="text" id="verAngle" value ="0">
                     </div> 
 
                     <div class="rowStyle">
@@ -450,7 +450,7 @@ const char webpageCode[] =
                 debuglog("Connected")
                 wsConnected = true
                 showToast("ESP connection established!", 2000)
-                wsSend("4:0,"); //get stepper Postion
+                wsSend("4:0,"); //get num of Cams
                 wsSend("0:connected")
             }
 
@@ -609,14 +609,14 @@ const char webpageCode[] =
 
             function updatePos(hor, ver, camId){
                 debuglog("updating pos")
-                document.getElementById("hor").value = hor;
-                document.getElementById("ver").value = ver;
+                document.getElementById("horAngle").value = hor;
+                document.getElementById("verAngle").value = ver;
                 document.getElementById("camId").value = camId;
             }
             
             function requestRotate(keyCode){
-                var hor = Math.round(parseFloat(document.getElementById("hor").value, 2));
-                var ver = Math.round(parseFloat(document.getElementById("ver").value, 2));
+                var hor = Math.round(parseFloat(document.getElementById("horAngle").value, 2));
+                var ver = Math.round(parseFloat(document.getElementById("verAngle").value, 2));
                 var step = Math.round(parseFloat(document.getElementById("stepInput").value, 2));
                 var speed = parseInt(document.getElementById("speed").value);
 
@@ -639,7 +639,8 @@ const char webpageCode[] =
                 }
 
                 if(wsConnected){
-                    wsSend("3:" + hor + "," + ver + "," + speed + "," + camId)
+                    wsSend("3:" + hor + "," + ver + "," + speed + "," + camId);
+                    wsSend("5:");
                 }
             }
 

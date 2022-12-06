@@ -3,7 +3,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include "SStateData.h"
-#define BOARD_ID 1
+#define BOARD_ID 2
 unsigned long currentMillis = millis();
 unsigned long previousMillis = 0; // Stores last time temperature was published
 const long interval = 10000;      // Interval at which to publish sensor readings
@@ -12,10 +12,17 @@ unsigned int readingId = BOARD_ID;
 bool answer = false;
 
 SStateData mStateData;
+
 #include "CEspNowSlave.h"
 
 void setup()
 {
+    mStateData.hor = 0;
+    mStateData.ver = 0;
+    mStateData.vel = 0;
+    mStateData.servoVel = 0;
+    mStateData.angleServo1 = 0;
+    mStateData.angleServo2 = 0;
     Serial.begin(921600);
     Serial.println();
     Serial.print("Client Board MAC Address:  ");
@@ -57,7 +64,9 @@ void loop()
             myData.id = BOARD_ID;
             myData.readingId = BOARD_ID;
             mStateData.angleServo1 = mStateData.hor; // fahren der Servos
-            mStateData.angleServo1 = mStateData.hor;
+            Serial.println(mStateData.angleServo1);
+            mStateData.angleServo2 = mStateData.ver;
+            Serial.println(mStateData.angleServo2);
             myData.pStateData = mStateData;
             esp_err_t result = esp_now_send(serverAddress, (uint8_t *)&myData, sizeof(myData));
         }

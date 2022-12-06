@@ -1,10 +1,10 @@
 #pragma once
 
 #include <esp_now.h>
-
+unsigned int recvId;
 esp_now_peer_info_t slave;
 int chan;
-
+uint8_t broadcastAddress1[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 enum MessageType
 {
     PAIRING,
@@ -99,8 +99,9 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
         memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
         Serial.print("ID = ");
         Serial.println(incomingReadings.id);
-        Serial.println();
-        myPeers.setDataFromPeer(incomingReadings.id, incomingReadings.pStateData);
+        Serial.println("in Data RECV");
+        myPeers.setDataFromPeer(incomingReadings.id, incomingReadings.pStateData, true);
+        recvId = incomingReadings.id;
         break;
 
     case PAIRING: // the message is a pairing request

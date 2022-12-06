@@ -86,7 +86,7 @@ bool CPeerList::getDataFromPeer(int pId, SStateData &pStateData)
     return true;
 }
 
-bool CPeerList::setDataFromPeer(int pId, SStateData pStateData)
+bool CPeerList::setDataFromPeer(int pId, SStateData pStateData, bool override)
 {
     if (this->isEmpty())
     {
@@ -102,7 +102,14 @@ bool CPeerList::setDataFromPeer(int pId, SStateData pStateData)
         }
         p = p->nachfolger;
     }
-    p->setData(pStateData);
+    if (override == true)
+        p->setData(pStateData);
+    else
+    {
+        p->mStateData.hor = pStateData.hor;
+        p->mStateData.ver = pStateData.ver;
+        p->mStateData.vel = pStateData.vel;
+    }
     return true;
 }
 CPeerList::CPeerList()

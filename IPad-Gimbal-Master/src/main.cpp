@@ -172,7 +172,7 @@ void respond(byte *payload, int length, uint8_t client_num)
     int count = 0;
 
     Serial.print("Command: ");
-    Serial.print(cmd);
+    Serial.println(cmd);
 
     // Return wifi Signals in Range
     if (cmd == '0')
@@ -234,31 +234,30 @@ void respond(byte *payload, int length, uint8_t client_num)
         //#################################################################
         // ID Handling ueberpruefen
         SStateData mStateData;
+        mStateData.angleServo1 = 0;
+        mStateData.angleServo2 = 0;
         if (!myPeers.getDataFromPeer(camId.toInt(), mStateData))
-            Serial.println("no Peer with ID found");
+        {
+            Serial.print("no Peer found with ID: ");
+            Serial.println(camId);
+        }
+
         mStateData.hor = hor.toFloat();
         mStateData.ver = ver.toFloat();
         mStateData.vel = vel.toFloat();
 
         espNowSendToPeer(camId.toInt(), mStateData);
-        if (!myPeers.setDataFromPeer(camId.toInt(), mStateData))
+        Serial.println("in cmd 3 after send to peer");
+        if (!myPeers.setDataFromPeer(camId.toInt(), mStateData, false))
         {
-            Serial.print("no Peer found with ID ");
+            Serial.print("no Peer found with ID: ");
             Serial.println(camId);
         }
-        /*outgoingSetpoints.msgType = DATA;
-        outgoingSetpoints.id = 0;
-        outgoingSetpoints.pStateData = mStateData;
-        outgoingSetpoints.readingId = camId.toInt();
-        esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints));*/
-
-        // esp_now_send(broadcastAddress, (uint8_t *)&myData, sizeof(myData));
-        //  gimbal.rotateTo(hor.toFloat(), ver.toFloat(), vel.toFloat());
 
         response = "3:";
-        response += mStateData.angleServo1; // dataRecv.A1; // stepperOne.getAbsoluteAngle(); // get horizonzal axis Value (x)
+        response += mStateData.angleServo1; // get horizonzal axis Value (x)
         response += ",";
-        response += mStateData.angleServo2; // dataRecv.A2; // stepperTwo.getAbsoluteAngle(); // get vertical axis Value (y)
+        response += mStateData.angleServo2; // get vertical axis Value (y)
         response += ",";
         response += camId;
         webSocket.broadcastTXT(response);
@@ -286,7 +285,7 @@ void respond(byte *payload, int length, uint8_t client_num)
         }
         if (getSet == "0")
         { // get
-            Serial.print(" (return stepper positions for ID: )");
+            Serial.print(" return stepper positions for ID: ");
             Serial.println(camId);
         }
         else if (getSet == "1")
@@ -296,16 +295,19 @@ void respond(byte *payload, int length, uint8_t client_num)
                 hor = "0";
             if (ver == "")
                 ver = "0";
+            myPeers.getDataFromPeer(camId.toInt(), mStateData);
             mStateData.hor = hor.toFloat();
             mStateData.ver = ver.toFloat();
-
-            if (!myPeers.setDataFromPeer(camId.toInt(), mStateData))
+            Serial.println("in cmd 4 before send to peer");
+            if (!myPeers.setDataFromPeer(camId.toInt(), mStateData, false))
             {
                 Serial.print("no Peer found with ID ");
                 Serial.println(camId);
             }
             espNowSendToPeer(camId.toInt(), mStateData);
         }
+        mStateData.angleServo1 = 0;
+        mStateData.angleServo2 = 0;
         if (!myPeers.getDataFromPeer(camId.toInt(), mStateData))
         {
             Serial.print("no Peer found with ID ");
@@ -313,16 +315,33 @@ void respond(byte *payload, int length, uint8_t client_num)
         }
 
         response = "4:";
-        response += mStateData.angleServo1; // get horizontal axis Value (x)
+        response += 0; // mStateData.angleServo1; // get horizontal axis Value (x)
         response += ",";
-        response += mStateData.angleServo2; // get vertical axis Value (y)
+        response += 0; // mStateData.angleServo2; // get vertical axis Value (y)
         response += ",";
         response += camId;
-        webSocket.sendTXT(client_num, response);
+        if (!webSocket.sendTXT(client_num, response))
+        {
+            Serial.println("could not send cmd 4");
+        }
     }
     else if (cmd == '5')
     {
+        unsigned int numPeers;
+        if (!getNumOfPeers(numPeers))
+            Serial.println("no Peers connected");
+        Serial.print("num of Peers: ");
+        Serial.println(numPeers);
         response = "5:";
+        response += numPeers;
+        if (!webSocket.sendTXT(client_num, response))
+        {
+            Serial.println("could not send num of Peers");
+        }
+    }
+    else if (cmd == '6')
+    {
+        response = "6:";
         response += getAllFavPos();
     }
     else
@@ -330,6 +349,26 @@ void respond(byte *payload, int length, uint8_t client_num)
         Serial.println("(Unknown command!)");
         webSocket.sendTXT(client_num, "100:Unkown Command");
     }
+}
+
+bool sendOnDataRecv()
+{
+    if (recvId > 0)
+    {
+        SStateData myData;
+        myPeers.getDataFromPeer(recvId, myData);
+        String response;
+        response = "3:";
+        response += myData.angleServo1;
+        response += ",";
+        response += myData.angleServo2;
+        response += ",";
+        response += recvId;
+        webSocket.broadcastTXT(response);
+        recvId = 0;
+        return true;
+    }
+    return false;
 }
 
 //########## EEPROM Handling ########## ///EEPROM WILL BE REPLACE WITH ESP32 SPIFFS
@@ -805,11 +844,13 @@ void websocketPing()
 // Send Data via ESP NOW to any Peer
 bool espNowSendToPeer(unsigned int Id, SStateData pStateData)
 {
-    outgoingSetpoints.msgType = DATA;                                             // Type of Data
-    outgoingSetpoints.id = 0;                                                     // ID of this ESP (Master = 0)
-    outgoingSetpoints.pStateData = pStateData;                                    // Data
-    outgoingSetpoints.readingId = Id;                                             // Target ID
-    esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints)); // send data
+    outgoingSetpoints.msgType = DATA;          // Type of Data
+    outgoingSetpoints.id = 0;                  // ID of this ESP (Master = 0)
+    outgoingSetpoints.pStateData = pStateData; // Data
+    outgoingSetpoints.readingId = Id;          // Target ID
+    esp_err_t result;
+    result = esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints)); // send data
+    Serial.print(result);
     return true;
 }
 
@@ -841,6 +882,7 @@ void setup()
     showEEPROM();
 
     // start wifi either AP or via network
+    WiFi.useStaticBuffers(true);
     WiFi.mode(WIFI_AP_STA); // for ESP NOW needed
     wifiSetup(10);
 
@@ -862,6 +904,7 @@ void setup()
     chan = WiFi.channel();
 
     initESP_NOW();
+    Serial.println("ESP NOW ready");
 }
 
 int lastSent = 0;
@@ -869,11 +912,14 @@ int lastSent = 0;
 void loop()
 {
     webSocket.loop();
-    stepperTimeoutCheck();
+    // stepperTimeoutCheck();
     if (millis() - lastSent > 10000)
     {
         lastSent = millis();
-
-        myPeers.printList();
+        // myPeers.printList(); // print peerlist every 10 sec
+    }
+    if (sendOnDataRecv())
+    {
+        Serial.println("Data actualized to socket");
     }
 }

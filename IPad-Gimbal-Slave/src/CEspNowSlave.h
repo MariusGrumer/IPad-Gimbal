@@ -109,7 +109,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
             Serial.println(inData.readingId);
             if (inData.readingId == BOARD_ID) // if Data is for this slave
             {
-                answer = true;
+
                 mStateData = inData.pStateData;
                 Serial.print("incoming vel = ");
                 Serial.println(inData.pStateData.vel);
@@ -117,6 +117,7 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
                 Serial.println(inData.pStateData.hor);
                 Serial.print("incoming ver = ");
                 Serial.println(inData.pStateData.ver);
+                answer = true;
             }
         }
 
