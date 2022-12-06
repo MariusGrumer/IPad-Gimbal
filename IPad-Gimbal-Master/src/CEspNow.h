@@ -4,7 +4,6 @@
 unsigned int recvId;
 esp_now_peer_info_t slave;
 int chan;
-uint8_t broadcastAddress1[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 enum MessageType
 {
     PAIRING,
