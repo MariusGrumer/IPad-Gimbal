@@ -14,12 +14,16 @@ programmiert in Visualstudo Code
 ## Features
 - Automatische WIFI-Channel suche -> Router gibt channel vor
 - Automatisches Pairing (ESP NOW)
+- Ansteuernn mehrerer Slaves zur gleichen Zeit
+- AUswahl der entsprechenden ID
 
 ## TODO´s
-- Webseite:
-  - Anpasen Datenaustausch mit websocket
-  - Anzeige mehrerer Slaves
-  - Überarbeiteung der Datenberechnung
+- Webseite / Master:
+  - Anzeige mehrerer Cams zur gleichen Zeit
+  - Überarbeiteung der Datenberechnung ? oder auf Slave
+  - Automatische vergabe von IDs
+  - Anzeigename für einen Peer / Slave
+  - Listenauswahl auf Webseite
   
 - SLaves:
   - Ansteuern der Motoren
