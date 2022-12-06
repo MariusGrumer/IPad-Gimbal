@@ -350,6 +350,10 @@ const char webpageCode[] =
                         <input type="number" id="stepInput" value="1">
                     </div>
                     <div>
+                        <span> number of connected Cams:</span> 
+                        <label id="numOfConnPeers">0</label>
+                    </div>
+                    <div>
                         <span> CamID:</span> 
                         <input type="number" id="camId" value="1">
                     </div>
@@ -466,6 +470,7 @@ const char webpageCode[] =
                     2: reboot ESP
                     3: rotate cam
                     4: get/set stepper position
+                    5: get num of Peers
                 */
                 debuglog("Recieved: " + evt.data)
                 payload = evt.data.split(":")
@@ -501,6 +506,10 @@ const char webpageCode[] =
                         updatePos(parseFloat(pos[0]), parseFloat(pos[1]),parseInt(pos[2]));
                         break;
 
+                    case "5":
+                        updateCamList(content);
+                        break;
+
                     default:
                         debuglog("ERROR interpreting message")
                         break;
@@ -523,6 +532,14 @@ const char webpageCode[] =
             }
 
             //Response Functions
+            function updateCamList(content)
+            {
+                debuglog(content);
+                document.getElementById('numOfConnPeers').innerHTML = content;
+            }
+
+
+
             function updateWifiBox(content){
                 var availableNetworks = content.split(",");
                 var listboxLength = networkListBox.length
@@ -594,7 +611,7 @@ const char webpageCode[] =
                 debuglog("updating pos")
                 document.getElementById("hor").value = hor;
                 document.getElementById("ver").value = ver;
-                document.getElementById("camId").value = 1; // anpassen an ID ???
+                document.getElementById("camId").value = camId;
             }
             
             function requestRotate(keyCode){
@@ -607,16 +624,16 @@ const char webpageCode[] =
 
                 switch (keyCode){ //key was pressed remove or add amount to Position
                     case 37: //left -> Vertical axis 
-                        ver = ver + step;
+                        ver = step;//ver + step;
                         break; 
                     case 38: //up -> Horizontal axis 
-                        hor = hor + step;
+                        hor = step;//hor + step;
                         break;
                     case 39: //right -> Vertical axis 
-                        ver = ver - step;
+                        ver = -step;//ver - step;
                         break;
                     case 40: //down -> Horizontal axis 
-                        hor = hor - step;
+                        hor = -step;//hor - step;
                         break;
                         
                 }

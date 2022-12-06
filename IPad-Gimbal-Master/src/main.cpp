@@ -65,6 +65,7 @@ void stepperTimeoutCheck();
 void websocketPing();
 
 bool espNowSendToPeer(unsigned int Id, SStateData pStateData);
+bool getNumOfPeers(unsigned int &numOfPeers);
 
 /*########################## FUNCTIONS ##############################*/
 
@@ -74,9 +75,9 @@ void onIndexRequest(AsyncWebServerRequest *request)
 {
     IPAddress remote_ip = request->client()->remoteIP();
     Serial.print("HTTP GET request from [");
-    Serial.print(remote_ip.toString());
+    // Serial.print(remote_ip.toString());
     Serial.print("]: ");
-    Serial.println(request->url());
+    // Serial.println(request->url());
     request->send(200, "text/html", webpageCode);
 }
 
@@ -275,7 +276,11 @@ void respond(byte *payload, int length, uint8_t client_num)
         SStateData mStateData;
         if (camId == "")
         {
-            response = "4:0,0,-1";
+            unsigned int numPeers;
+            if (!getNumOfPeers(numPeers))
+                Serial.println("no Peers connected");
+            response = "5:";
+            response += numPeers;
             webSocket.sendTXT(client_num, response);
             return;
         }
@@ -807,6 +812,22 @@ bool espNowSendToPeer(unsigned int Id, SStateData pStateData)
     esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints)); // send data
     return true;
 }
+
+bool getNumOfPeers(unsigned int &numOfPeers)
+{
+    numOfPeers = 0;
+    esp_now_peer_num_t numberOfPeers;
+    if (esp_now_get_peer_num(&numberOfPeers) == ESP_OK && myPeers.isEmpty() == false)
+    {
+        numOfPeers = numberOfPeers.total_num;
+    }
+    else
+    {
+        return false;
+    }
+
+    return true;
+}
 //----------------------------------- µ-Controller loop -----------------------------------
 void setup()
 {
@@ -852,10 +873,6 @@ void loop()
     if (millis() - lastSent > 10000)
     {
         lastSent = millis();
-        Serial.print("aktuell existierende peers: ");
-        esp_now_peer_num_t numOfPeers;
-        esp_now_get_peer_num(&numOfPeers);
-        Serial.println(numOfPeers.total_num);
 
         myPeers.printList();
     }
