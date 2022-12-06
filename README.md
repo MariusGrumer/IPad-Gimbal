@@ -9,6 +9,10 @@ Tutorial für ESP NOW unter:
 
 https://randomnerdtutorials.com/esp-now-auto-pairing-esp32-esp8266/
 
+Problem: Senden an alle Peers auf Liste, gelöst in https://github.com/espressif/esp-idf/issues/8992
+Implementierung: WiFi.useStaticBuffers(true);
+
+
 programmiert in Visualstudo Code
 
 ## Features
