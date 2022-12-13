@@ -29,19 +29,15 @@ void CPeerList::printList()
         Serial.print("Peer mit ID: ");
         Serial.println(p->mId);
         Serial.println("besitzt folgende Daten: ");
-        Serial.print("vel: ");
-        Serial.println(p->mStateData.vel);
+        Serial.print("vel_hor: ");
+        Serial.println(p->mStateData.vel_hor);
+        Serial.print("vel_ver: ");
+        Serial.println(p->mStateData.vel_ver);
         Serial.print("ver: ");
         Serial.println(p->mStateData.ver);
         Serial.print("hor: ");
         Serial.println(p->mStateData.hor);
 
-        Serial.print("servoVel: ");
-        Serial.println(p->mStateData.servoVel);
-        Serial.print("angleServo1: ");
-        Serial.println(p->mStateData.angleServo1);
-        Serial.print("angleServo2: ");
-        Serial.println(p->mStateData.angleServo2);
         p = p->nachfolger;
     }
 }
@@ -78,7 +74,6 @@ bool CPeerList::getDataFromPeer(int pId, SStateData &pStateData)
         p = p->nachfolger;
         if (p == NULL) // no Id found
         {
-            Serial.println("no peer with ID found");
             return false;
         }
     }
@@ -97,7 +92,6 @@ bool CPeerList::setDataFromPeer(int pId, SStateData pStateData, bool override)
     {
         if (p == end) // no ID found
         {
-            Serial.println("no peers with matching ID found");
             return false;
         }
         p = p->nachfolger;
@@ -108,10 +102,26 @@ bool CPeerList::setDataFromPeer(int pId, SStateData pStateData, bool override)
     {
         p->mStateData.hor = pStateData.hor;
         p->mStateData.ver = pStateData.ver;
-        p->mStateData.vel = pStateData.vel;
+        p->mStateData.vel_hor = pStateData.vel_hor;
+        p->mStateData.vel_ver = pStateData.vel_ver;
     }
     return true;
 }
+
+String CPeerList::getResponseList()
+{
+    String response = "";
+    CPeer *p = head;
+    while (p != NULL)
+    {
+        response += p->mId;
+        if (p->nachfolger != NULL)
+            response += ",";
+        p = p->nachfolger;
+    }
+    return response;
+}
+
 CPeerList::CPeerList()
 {
     head = end = NULL;

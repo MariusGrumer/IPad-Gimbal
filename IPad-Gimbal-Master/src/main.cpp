@@ -9,7 +9,7 @@
 #include "CPeerList.h"
 
 CPeerList myPeers;
-
+bool newPeerConn = false;
 #include "CEspNow.h"
 
 // HS Wlan
@@ -206,51 +206,53 @@ void respond(byte *payload, int length, uint8_t client_num)
     }
     else if (cmd == '3')
     {
-        // Recv: 3:horAx,vertAx,Speed,camId
-        // Send: 3:posX,posY,camId
-        Serial.println(" (rotate camera)");
-        String hor = splitString(data, ',', 0);
-        String ver = splitString(data, ',', 1);
-        String vel = splitString(data, ',', 2);
-        String camId = splitString(data, ',', 3);
-        Serial.print("hor: ");
-        Serial.println(hor);
-        Serial.print("ver: ");
-        Serial.println(ver);
-        Serial.print("vel: ");
-        Serial.println(vel);
-        Serial.print("ID: ");
+        // Recv: 3:camID,hor,ver,hor_vel,ver_vel
+        // Send: 3:camId,hor,ver
+
+        String camId = splitString(data, ',', 0);
+        String hor = splitString(data, ',', 1);
+        String ver = splitString(data, ',', 2);
+        String hor_vel = splitString(data, ',', 3);
+        String ver_vel = splitString(data, ',', 4);
+
+        Serial.print("rotate camera | ID:");
         Serial.println(camId);
 
-        // #################################################################
-        //  ID Handling ueberpruefen
-        SStateData mStateData;
-        // mStateData.angleServo1 = 0;
-        // mStateData.angleServo2 = 0;
-        if (!myPeers.getDataFromPeer(camId.toInt(), mStateData))
+        SStateData mStateData; // Saving Incoming Data
+
+        if (!myPeers.getDataFromPeer(camId.toInt(), mStateData)) // Data in chained List
         {
             Serial.print("no Peer found with ID: ");
             Serial.println(camId);
         }
 
+        // writing received data in struct
         mStateData.hor = hor.toFloat();
         mStateData.ver = ver.toFloat();
-        // mStateData.vel = vel.toFloat();
+        mStateData.vel_hor = hor_vel.toFloat();
+        mStateData.vel_ver = ver_vel.toFloat();
 
-        espNowSendToPeer(camId.toInt(), mStateData);
-        Serial.println("in cmd 3 after send to peer");
+        // sending received data to peer
+        if (!espNowSendToPeer(camId.toInt(), mStateData))
+        {
+            Serial.print("Error sending data to peer | ID: ");
+            Serial.println(camId);
+        }
+
+        // store data in linked list
         if (!myPeers.setDataFromPeer(camId.toInt(), mStateData, false))
         {
             Serial.print("no Peer found with ID: ");
             Serial.println(camId);
         }
 
+        // answer to client
         response = "3:";
-        // response += mStateData.angleServo1; // get horizonzal axis Value (x)
-        response += ",";
-        // response += mStateData.angleServo2; // get vertical axis Value (y)
-        response += ",";
-        response += camId;
+        response += camId.toInt();
+        // response += ",";
+        //  response += mStateData.angleServo1; // get horizonzal axis Value (x)
+        // response += ",";
+        //  response += mStateData.angleServo2; // get vertical axis Value (y)
         webSocket.broadcastTXT(response);
 
         // get/set stepper Pos
@@ -297,8 +299,8 @@ void respond(byte *payload, int length, uint8_t client_num)
             }
             espNowSendToPeer(camId.toInt(), mStateData);
         }
-        mStateData.angleServo1 = 0;
-        mStateData.angleServo2 = 0;
+        // mStateData.angleServo1 = 0;
+        // mStateData.angleServo2 = 0;
         if (!myPeers.getDataFromPeer(camId.toInt(), mStateData))
         {
             Serial.print("no Peer found with ID ");
@@ -318,16 +320,35 @@ void respond(byte *payload, int length, uint8_t client_num)
     }
     else if (cmd == '5')
     {
+        String mode = splitString(data, ',', 0);
+
         unsigned int numPeers;
         if (!getNumOfPeers(numPeers))
             Serial.println("no Peers connected");
         Serial.print("num of Peers: ");
         Serial.println(numPeers);
         response = "5:";
-        response += numPeers;
-        if (!webSocket.sendTXT(client_num, response))
+
+        if (mode == "0") // send num of peers
         {
-            Serial.println("could not send num of Peers");
+            response += "0,";
+            response += numPeers;
+
+            if (!webSocket.sendTXT(client_num, response))
+            {
+                Serial.println("could not send num of Peers");
+            }
+        }
+        if (mode == "1") // send peerlist
+        {
+
+            response += "1,";
+            response += myPeers.getResponseList();
+            Serial.println(response);
+            if (!webSocket.sendTXT(client_num, response))
+            {
+                Serial.println("could not send num of Peers");
+            }
         }
     }
     else if (cmd == '6')
@@ -342,6 +363,14 @@ void respond(byte *payload, int length, uint8_t client_num)
     }
 }
 
+bool sendOnNewConn()
+{
+    String response = "5:1,";
+    response += myPeers.getResponseList();
+    webSocket.broadcastTXT(response);
+    return true;
+}
+
 bool sendOnDataRecv()
 {
     if (recvId > 0)
@@ -350,10 +379,6 @@ bool sendOnDataRecv()
         myPeers.getDataFromPeer(recvId, myData);
         String response;
         response = "3:";
-        response += myData.angleServo1;
-        response += ",";
-        response += myData.angleServo2;
-        response += ",";
         response += recvId;
         webSocket.broadcastTXT(response);
         recvId = 0;
@@ -820,8 +845,9 @@ bool espNowSendToPeer(unsigned int Id, SStateData pStateData)
     outgoingSetpoints.readingId = Id;          // Target ID
     esp_err_t result;
     result = esp_now_send(NULL, (uint8_t *)&outgoingSetpoints, sizeof(outgoingSetpoints)); // send data
-    Serial.print(result);
-    return true;
+    if (result == ESP_OK)
+        return true;
+    return false;
 }
 
 bool getNumOfPeers(unsigned int &numOfPeers)
@@ -883,7 +909,7 @@ void loop()
 {
     webSocket.loop();
     // stepperTimeoutCheck();
-    if (millis() - lastSent > 10000)
+    if (millis() - lastSent > 5000)
     {
         lastSent = millis();
         // myPeers.printList(); // print peerlist every 10 sec
@@ -891,5 +917,10 @@ void loop()
     if (sendOnDataRecv())
     {
         Serial.println("Data actualized to socket");
+    }
+    if (newPeerConn)
+    {
+        sendOnNewConn();
+        newPeerConn = false;
     }
 }

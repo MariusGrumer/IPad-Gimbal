@@ -16,4 +16,5 @@ public:
     bool getDataFromPeer(int pId, SStateData &pStateData);
     bool setDataFromPeer(int pId, SStateData pStateData, bool override);
     void printList();
+    String getResponseList();
 };
