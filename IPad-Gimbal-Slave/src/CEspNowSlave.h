@@ -28,8 +28,8 @@ typedef struct struct_pairing
 } struct_pairing;
 
 // Create 2 struct_message
-struct_message myData; // data to send
-struct_message inData; // data received
+struct_message espNowSendData; // data to send
+struct_message inData;         // data received
 struct_pairing pairingData;
 
 enum PairingStatus
@@ -111,12 +111,6 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
             {
 
                 mStateData = inData.pStateData;
-                Serial.print("incoming vel = ");
-                Serial.println(inData.pStateData.vel);
-                Serial.print("incoming hor = ");
-                Serial.println(inData.pStateData.hor);
-                Serial.print("incoming ver = ");
-                Serial.println(inData.pStateData.ver);
                 answer = true;
             }
         }

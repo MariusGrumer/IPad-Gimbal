@@ -155,7 +155,7 @@ void respond(byte *payload, int length, uint8_t client_num)
     2: reboot ESP
     3: rotate cam
     4: get/set stepper position
-    5: send available saved Positions
+    5: get num of peers
 
     */
 
@@ -214,8 +214,8 @@ void respond(byte *payload, int length, uint8_t client_num)
     }
     else if (cmd == '3')
     {
-        // 3:horAx,vertAx,Speed
-        // 3:posX,posY,Speed
+        // Recv: 3:horAx,vertAx,Speed,camId
+        // Send: 3:posX,posY,camId
         stamp = millis();
         Serial.println(" (rotate camera)");
         String hor = splitString(data, ',', 0);

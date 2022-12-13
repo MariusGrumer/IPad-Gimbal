@@ -2,10 +2,8 @@
 #include <Arduino.h>
 struct SStateData
 {
-    float vel;
+    float vel_ver;
+    float vel_hor;
     float ver;
     float hor;
-    float angleServo1;
-    float angleServo2;
-    float servoVel;
 };
