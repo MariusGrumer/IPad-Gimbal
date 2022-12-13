@@ -5,8 +5,6 @@
 #include <WebSocketsServer.h>  //https://github.com/me-no-dev/ESPAsyncWebServer and https://github.com/me-no-dev/AsyncTCP
 #include <nvs_flash.h>
 #include "webpage.h"
-#include "StepperMaster.h"
-#include "Gimbal.h"
 #include <Arduino.h>
 #include "CPeerList.h"
 
@@ -38,12 +36,6 @@ Preferences wifiMeta;
 Preferences favPos;
 int credentialCounter;
 
-// Stepper init          IN1, IN2, IN3, IN4
-StepperMaster stepperOne(16, 17, 18, 19); // Horizontal axis
-StepperMaster stepperTwo(27, 26, 25, 33); // Vertical axis
-Gimbal gimbal(&stepperOne, &stepperTwo, 900);
-int stamp;
-
 // init functions
 void respond(byte *payload, int length, uint8_t client_num);
 String scanWifi();
@@ -69,8 +61,8 @@ bool getNumOfPeers(unsigned int &numOfPeers);
 
 /*########################## FUNCTIONS ##############################*/
 
-//########## Web Server Handling ##########
-// Callback send homepage
+// ########## Web Server Handling ##########
+//  Callback send homepage
 void onIndexRequest(AsyncWebServerRequest *request)
 {
     IPAddress remote_ip = request->client()->remoteIP();
@@ -92,7 +84,7 @@ void onPageNotFound(AsyncWebServerRequest *request)
     request->send(404, "text/plan", "Page not found!\n    404");
 }
 
-//########## WebSocket Handling ##########
+// ########## WebSocket Handling ##########
 void onWebSocketEvent(uint8_t client_num, WStype_t type, uint8_t *payload, size_t length)
 {
 
@@ -216,7 +208,6 @@ void respond(byte *payload, int length, uint8_t client_num)
     {
         // Recv: 3:horAx,vertAx,Speed,camId
         // Send: 3:posX,posY,camId
-        stamp = millis();
         Serial.println(" (rotate camera)");
         String hor = splitString(data, ',', 0);
         String ver = splitString(data, ',', 1);
@@ -231,11 +222,11 @@ void respond(byte *payload, int length, uint8_t client_num)
         Serial.print("ID: ");
         Serial.println(camId);
 
-        //#################################################################
-        // ID Handling ueberpruefen
+        // #################################################################
+        //  ID Handling ueberpruefen
         SStateData mStateData;
-        mStateData.angleServo1 = 0;
-        mStateData.angleServo2 = 0;
+        // mStateData.angleServo1 = 0;
+        // mStateData.angleServo2 = 0;
         if (!myPeers.getDataFromPeer(camId.toInt(), mStateData))
         {
             Serial.print("no Peer found with ID: ");
@@ -244,7 +235,7 @@ void respond(byte *payload, int length, uint8_t client_num)
 
         mStateData.hor = hor.toFloat();
         mStateData.ver = ver.toFloat();
-        mStateData.vel = vel.toFloat();
+        // mStateData.vel = vel.toFloat();
 
         espNowSendToPeer(camId.toInt(), mStateData);
         Serial.println("in cmd 3 after send to peer");
@@ -255,9 +246,9 @@ void respond(byte *payload, int length, uint8_t client_num)
         }
 
         response = "3:";
-        response += mStateData.angleServo1; // get horizonzal axis Value (x)
+        // response += mStateData.angleServo1; // get horizonzal axis Value (x)
         response += ",";
-        response += mStateData.angleServo2; // get vertical axis Value (y)
+        // response += mStateData.angleServo2; // get vertical axis Value (y)
         response += ",";
         response += camId;
         webSocket.broadcastTXT(response);
@@ -371,7 +362,7 @@ bool sendOnDataRecv()
     return false;
 }
 
-//########## EEPROM Handling ########## ///EEPROM WILL BE REPLACE WITH ESP32 SPIFFS
+// ########## EEPROM Handling ########## ///EEPROM WILL BE REPLACE WITH ESP32 SPIFFS
 String eepromAction(String ws_payload)
 {
 
@@ -572,7 +563,7 @@ String getAllFavPos()
     return returnVal;
 }
 
-//########## WiFi Handling ##########
+// ########## WiFi Handling ##########
 bool wifiSetup(int wifiTimeout)
 { // timeout in sec
   // connecting to wifi with timeout
@@ -773,7 +764,7 @@ String scanWifi()
     return result;
 }
 
-//########## Utility functions ##########
+// ########## Utility functions ##########
 String splitString(String data, char separator, int index)
 {
     bool found = false;
@@ -802,27 +793,6 @@ String splitString(String data, char separator, int index)
         }
     }
     return chopped;
-}
-
-void gimbalTest()
-{
-    gimbal.rotateTo(-20, 20, 30);
-    gimbal.rotateTo(20, 20, 30);
-    gimbal.rotateTo(20, -20, 30);
-    gimbal.rotateTo(0, -20, 30);
-    gimbal.rotateTo(0, 0, 30);
-    stepperOne.disable();
-    stepperTwo.disable();
-}
-
-void stepperTimeoutCheck()
-{
-    int stamp = 0;
-    if (stamp + stepperTimeout <= millis())
-    {
-        stepperOne.disable();
-        stepperTwo.disable();
-    }
 }
 
 void websocketPing()

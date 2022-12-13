@@ -536,6 +536,7 @@ const char webpageCode[] =
             {
                 debuglog(content);
                 document.getElementById('numOfConnPeers').innerHTML = content;
+                // listOfConnPeers
             }
 
 
