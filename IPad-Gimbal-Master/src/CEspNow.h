@@ -4,6 +4,7 @@
 unsigned int recvId;
 esp_now_peer_info_t slave;
 int chan;
+uint8_t broadcastAddress1[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 enum MessageType
 {
     PAIRING,
@@ -65,6 +66,7 @@ bool addPeer(const uint8_t *peer_addr)
             // Pair success
             Serial.println("Pair success");
             myPeers.addPeer(pairingData.id); // Peer zu Liste hinzufügen
+            newPeerConn = true;
             return true;
         }
         else
@@ -96,9 +98,6 @@ void OnDataRecv(const uint8_t *mac_addr, const uint8_t *incomingData, int len)
     {
     case DATA: // the message is data type
         memcpy(&incomingReadings, incomingData, sizeof(incomingReadings));
-        Serial.print("ID = ");
-        Serial.println(incomingReadings.id);
-        Serial.println("in Data RECV");
         myPeers.setDataFromPeer(incomingReadings.id, incomingReadings.pStateData, true);
         recvId = incomingReadings.id;
         break;

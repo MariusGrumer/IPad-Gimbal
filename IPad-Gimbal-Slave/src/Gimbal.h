@@ -16,7 +16,7 @@ class Gimbal
 
   public:
     Gimbal(StepperMaster* stepperOne, StepperMaster* stepperTwo, int inter); //stepperOne = horizontal axis, stepeprTwo = vertical axis
-    void rotateTo(double phi, double theta, int angleSpeed);
+    void rotateTo(double phi, double theta, int angleSpeed_phi ,int angleSpeed_theta);
     void returnToHome();
 
 
